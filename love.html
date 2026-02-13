@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Be My Valentine 💘</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:'Comic Sans MS', cursive;
+}
+
+body{
+  margin:0;
+  height:100vh;
+  background:url("bg.png") center/cover no-repeat;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.card{
+  background:rgba(255,255,255,0.95);
+  padding:22px;
+  border-radius:22px;
+  width:92%;
+  max-width:420px;
+  text-align:center;
+  box-shadow:0 15px 35px rgba(0,0,0,0.25);
+  z-index:2;
+}
+
+h1{ color:#c9184a; }
+
+button{
+  padding:12px 26px;
+  font-size:1.05rem;
+  border:none;
+  border-radius:30px;
+  cursor:pointer;
+  margin:8px;
+}
+
+#yes{ background:#ff4d6d; color:white; }
+#no{
+  background:#ddd;
+  position:fixed;
+  top:70%;
+  left:50%;
+}
+
+.section{ display:none; }
+
+/* falling items */
+.heart,.kiss{
+  position:fixed;
+  font-size:32px;
+  animation:fall 5s linear;
+  cursor:pointer;
+}
+
+@keyframes fall{
+  from{ transform:translateY(-15vh); }
+  to{ transform:translateY(110vh); }
+}
+
+/* popup */
+.popup{
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%) scale(0);
+  background:#fff;
+  padding:16px 20px;
+  border-radius:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.3);
+  transition:0.3s;
+  z-index:999;
+}
+.popup.show{
+  transform:translateX(-50%) scale(1);
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <!-- PROPOSAL -->
+  <div id="proposal">
+    <h1>boi 💕<br>Will you be my Valentine?</h1>
+    <button id="yes">YES 😘</button>
+    <button id="no">NO 😏</button>
+  </div>
+
+  <!-- LOVE -->
+  <div id="love" class="section">
+    <h1>I LOVE YOU BOI ❤️</h1>
+    <p>
+      You are my comfort, my happiness, my safe place,
+      and my favorite person forever.
+      Loving you feels easy and right.
+    </p>
+    <button id="startGame">NEXT 💕</button>
+  </div>
+
+  <!-- GAME 1 -->
+  <div id="game1" class="section">
+    <h1>Catch the Hearts ❤️</h1>
+    <p>Love score: <span id="score">0</span></p>
+  </div>
+
+  <!-- GAME 2 -->
+  <div id="game2" class="section">
+    <h1>Tap the Kisses 💋</h1>
+    <p>Kisses: <span id="kisses">0</span></p>
+  </div>
+
+  <!-- FINAL -->
+  <div id="final" class="section">
+    <h1>💖💋</h1>
+    <p>
+      You’re showered with lots of love and kisses,
+      not only today but everyday 💞<br><br>
+      sayyyyy… <b>ummmmmmmmuahhhh 💋</b>
+    </p>
+  </div>
+</div>
+
+<!-- NO popup -->
+<div class="popup" id="noPopup">
+  😒😡<br>
+  nooo… enduk click chestunv boi?<br>
+  <b>YES click cheyu 😑</b>
+</div>
+
+<!-- SCORE popup -->
+<div class="popup" id="scorePopup">
+  Enough love collected 😌❤️<br><br>
+  <button id="continue">Continue</button>
+  <button id="next">Next 💋</button>
+</div>
+
+<script>
+const noBtn = document.getElementById("no");
+const yesBtn = document.getElementById("yes");
+const proposal = document.getElementById("proposal");
+const love = document.getElementById("love");
+const game1 = document.getElementById("game1");
+const game2 = document.getElementById("game2");
+const final = document.getElementById("final");
+
+const noPopup = document.getElementById("noPopup");
+const scorePopup = document.getElementById("scorePopup");
+
+const scoreEl = document.getElementById("score");
+const kissEl = document.getElementById("kisses");
+
+let score=0, kisses=0;
+let heartTimer, kissTimer;
+
+/* NO button interaction */
+function noAction(){
+  if(navigator.vibrate) navigator.vibrate([150,80,150]);
+
+  noPopup.classList.add("show");
+  setTimeout(()=>noPopup.classList.remove("show"),1300);
+
+  noBtn.style.left = Math.random()*80 + "vw";
+  noBtn.style.top = Math.random()*80 + "vh";
+}
+noBtn.addEventListener("click", noAction);
+noBtn.addEventListener("touchstart", noAction);
+
+/* YES */
+yesBtn.onclick=()=>{
+  proposal.style.display="none";
+  love.style.display="block";
+};
+
+/* Start Game 1 */
+document.getElementById("startGame").onclick=()=>{
+  love.style.display="none";
+  game1.style.display="block";
+  heartTimer=setInterval(createHeart,900);
+};
+
+function createHeart(){
+  const h=document.createElement("div");
+  h.className="heart";
+  h.innerHTML="❤️";
+  h.style.left=Math.random()*85+"vw";
+  document.body.appendChild(h);
+
+  h.onclick=()=>{
+    score++;
+    scoreEl.textContent=score;
+    h.remove();
+
+    if(score===18){
+      scorePopup.classList.add("show");
+    }
+  };
+
+  setTimeout(()=>h.remove(),5000);
+}
+
+/* Popup choices */
+document.getElementById("continue").onclick=()=>{
+  scorePopup.classList.remove("show");
+};
+
+document.getElementById("next").onclick=()=>{
+  scorePopup.classList.remove("show");
+  clearInterval(heartTimer);
+  game1.style.display="none";
+  game2.style.display="block";
+  kissTimer=setInterval(createKiss,1000);
+};
+
+/* Game 2 */
+function createKiss(){
+  const k=document.createElement("div");
+  k.className="kiss";
+  k.innerHTML="💋";
+  k.style.left=Math.random()*85+"vw";
+  document.body.appendChild(k);
+
+  k.onclick=()=>{
+    kisses++;
+    kissEl.textContent=kisses;
+    k.remove();
+    if(kisses===10){
+      clearInterval(kissTimer);
+      game2.style.display="none";
+      final.style.display="block";
+    }
+  };
+
+  setTimeout(()=>k.remove(),5000);
+}
+</script>
+
+</body>
+</html>
