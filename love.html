@@ -21,6 +21,7 @@ body{
   overflow:hidden;
 }
 
+/* Card */
 .card{
   background:rgba(255,255,255,0.95);
   padding:22px;
@@ -44,6 +45,7 @@ button{
 }
 
 #yes{ background:#ff4d6d; color:white; }
+
 #no{
   background:#ddd;
   position:fixed;
@@ -51,9 +53,10 @@ button{
   left:50%;
 }
 
+/* Sections */
 .section{ display:none; }
 
-/* falling items */
+/* Falling items */
 .heart,.kiss{
   position:fixed;
   font-size:32px;
@@ -66,21 +69,36 @@ button{
   to{ transform:translateY(110vh); }
 }
 
-/* popup */
-.popup{
+/* Floating popup */
+.float-popup{
   position:fixed;
-  bottom:30px;
-  left:50%;
-  transform:translateX(-50%) scale(0);
   background:#fff;
-  padding:16px 20px;
-  border-radius:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.3);
-  transition:0.3s;
+  padding:12px 18px;
+  border-radius:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  font-size:0.9rem;
   z-index:999;
+  animation:floatAround 1.2s ease-in-out;
+  pointer-events:none;
 }
-.popup.show{
-  transform:translateX(-50%) scale(1);
+
+@keyframes floatAround{
+  0%{ opacity:0; transform:translate(0,0) scale(0.8); }
+  50%{ opacity:1; transform:translate(-10px,-20px) scale(1); }
+  100%{ opacity:0; transform:translate(10px,-40px) scale(0.9); }
+}
+
+/* Shake (iPhone feedback) */
+.shake{
+  animation:shake 0.3s;
+}
+
+@keyframes shake{
+  0%{ transform:translateX(0); }
+  25%{ transform:translateX(-5px); }
+  50%{ transform:translateX(5px); }
+  75%{ transform:translateX(-5px); }
+  100%{ transform:translateX(0); }
 }
 </style>
 </head>
@@ -128,20 +146,7 @@ button{
       sayyyyy… <b>ummmmmmmmuahhhh 💋</b>
     </p>
   </div>
-</div>
 
-<!-- NO popup -->
-<div class="popup" id="noPopup">
-  😒😡<br>
-  nooo… enduk click chestunv boi?<br>
-  <b>YES click cheyu 😑</b>
-</div>
-
-<!-- SCORE popup -->
-<div class="popup" id="scorePopup">
-  Enough love collected 😌❤️<br><br>
-  <button id="continue">Continue</button>
-  <button id="next">Next 💋</button>
 </div>
 
 <script>
@@ -153,87 +158,92 @@ const game1 = document.getElementById("game1");
 const game2 = document.getElementById("game2");
 const final = document.getElementById("final");
 
-const noPopup = document.getElementById("noPopup");
-const scorePopup = document.getElementById("scorePopup");
-
 const scoreEl = document.getElementById("score");
 const kissEl = document.getElementById("kisses");
 
-let score=0, kisses=0;
+let score = 0, kisses = 0;
 let heartTimer, kissTimer;
 
 /* NO button interaction */
-function noAction(){
-  if(navigator.vibrate) navigator.vibrate([150,80,150]);
+function noAction(e){
+  e.preventDefault();
 
-  noPopup.classList.add("show");
-  setTimeout(()=>noPopup.classList.remove("show"),1300);
+  // floating popup
+  const popup = document.createElement("div");
+  popup.className = "float-popup";
+  popup.innerHTML = "😒 nooo boi… YES click cheyu 💕";
+  popup.style.left = Math.random()*70 + "vw";
+  popup.style.top  = Math.random()*60 + "vh";
+  document.body.appendChild(popup);
+  setTimeout(()=>popup.remove(),1200);
 
-  noBtn.style.left = Math.random()*80 + "vw";
-  noBtn.style.top = Math.random()*80 + "vh";
+  // screen shake (iphone feedback)
+  document.body.classList.add("shake");
+  setTimeout(()=>document.body.classList.remove("shake"),300);
+
+  // move button after feedback
+  setTimeout(()=>{
+    noBtn.style.left = Math.random()*80 + "vw";
+    noBtn.style.top  = Math.random()*80 + "vh";
+  },150);
 }
+
+noBtn.addEventListener("mouseenter", noAction);
+noBtn.addEventListener("touchstart", noAction, { passive:false });
 noBtn.addEventListener("click", noAction);
-noBtn.addEventListener("touchstart", noAction);
 
 /* YES */
-yesBtn.onclick=()=>{
+yesBtn.onclick = () => {
   proposal.style.display="none";
   love.style.display="block";
 };
 
 /* Start Game 1 */
-document.getElementById("startGame").onclick=()=>{
+document.getElementById("startGame").onclick = () => {
   love.style.display="none";
   game1.style.display="block";
-  heartTimer=setInterval(createHeart,900);
+  heartTimer = setInterval(createHeart, 900);
 };
 
 function createHeart(){
-  const h=document.createElement("div");
-  h.className="heart";
-  h.innerHTML="❤️";
-  h.style.left=Math.random()*85+"vw";
+  const h = document.createElement("div");
+  h.className = "heart";
+  h.innerHTML = "❤️";
+  h.style.left = Math.random()*85 + "vw";
   document.body.appendChild(h);
 
-  h.onclick=()=>{
+  h.onclick = () => {
     score++;
-    scoreEl.textContent=score;
+    scoreEl.textContent = score;
     h.remove();
-
-    if(score===18){
-      scorePopup.classList.add("show");
-    }
   };
 
   setTimeout(()=>h.remove(),5000);
 }
 
-/* Popup choices */
-document.getElementById("continue").onclick=()=>{
-  scorePopup.classList.remove("show");
-};
-
-document.getElementById("next").onclick=()=>{
-  scorePopup.classList.remove("show");
-  clearInterval(heartTimer);
-  game1.style.display="none";
-  game2.style.display="block";
-  kissTimer=setInterval(createKiss,1000);
-};
+/* Move to Game 2 at 18 */
+setInterval(()=>{
+  if(score === 18){
+    clearInterval(heartTimer);
+    game1.style.display="none";
+    game2.style.display="block";
+    kissTimer = setInterval(createKiss, 1000);
+  }
+},300);
 
 /* Game 2 */
 function createKiss(){
-  const k=document.createElement("div");
-  k.className="kiss";
-  k.innerHTML="💋";
-  k.style.left=Math.random()*85+"vw";
+  const k = document.createElement("div");
+  k.className = "kiss";
+  k.innerHTML = "💋";
+  k.style.left = Math.random()*85 + "vw";
   document.body.appendChild(k);
 
-  k.onclick=()=>{
+  k.onclick = () => {
     kisses++;
-    kissEl.textContent=kisses;
+    kissEl.textContent = kisses;
     k.remove();
-    if(kisses===10){
+    if(kisses === 10){
       clearInterval(kissTimer);
       game2.style.display="none";
       final.style.display="block";
